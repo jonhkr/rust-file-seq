@@ -1,0 +1,18 @@
+[package]
+name = "file-seq"
+version = "0.1.0"
+authors = ["Jonas Trevisan <jonas.trevisa@gmail.com>"]
+edition = "2018"
+license = "MIT"
+keywords = ["sequence", "file-sequence"]
+categories = ["filesystem"]
+repository = "https://github.com/jonhkr/rust-file-seq"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.8"
+
+[dev-dependencies]
+rand = "0.7.3"
