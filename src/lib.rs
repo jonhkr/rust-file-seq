@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use log::warn;
 
+#[derive(Debug)]
 pub(crate) struct FileSeq {
     path_1: PathBuf,
     path_2: PathBuf,
