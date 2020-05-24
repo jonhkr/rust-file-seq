@@ -8,6 +8,7 @@ keywords = ["sequence", "file-sequence"]
 categories = ["filesystem"]
 repository = "https://github.com/jonhkr/rust-file-seq"
 readme = "README.md"
+description = "Simple sequence that uses the file system as store"
 exclude = [
     "file-seq.iml"
 ]
