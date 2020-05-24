@@ -8,8 +8,9 @@ keywords = ["sequence", "file-sequence"]
 categories = ["filesystem"]
 repository = "https://github.com/jonhkr/rust-file-seq"
 readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = [
+    "file-seq.iml"
+]
 
 [dependencies]
 log = "0.4.8"
