@@ -1,13 +1,12 @@
 [package]
 name = "file-seq"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Jonas Trevisan <jonas.trevisa@gmail.com>"]
 edition = "2018"
 license = "MIT"
 keywords = ["sequence", "file-sequence"]
 categories = ["filesystem"]
 repository = "https://github.com/jonhkr/rust-file-seq"
-readme = "README.md"
 description = "Simple sequence that uses the file system as store"
 exclude = [
     "file-seq.iml"
