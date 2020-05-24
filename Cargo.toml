@@ -1,6 +1,6 @@
 [package]
 name = "file-seq"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Jonas Trevisan <jonas.trevisa@gmail.com>"]
 edition = "2018"
 license = "MIT"
