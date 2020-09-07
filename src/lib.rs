@@ -11,7 +11,7 @@
 //! use file_seq::FileSeq;
 //! use std::path::Path;
 //!
-//! let dir = Path::new("./store_dir");
+//! let dir = Path::new("/tmp/example");
 //! let initial_value = 1;
 //!
 //! let seq = FileSeq::new(&dir, initial_value).unwrap();
@@ -73,7 +73,7 @@ impl FileSeq {
     /// use file_seq::FileSeq;
     /// use std::path::Path;
     ///
-    /// let dir = Path::new("./store_dir");
+    /// let dir = Path::new("/tmp/example_delete");
     /// let initial_value = 1;
     ///
     /// let seq = FileSeq::new(&dir, initial_value).unwrap();
@@ -99,7 +99,7 @@ impl FileSeq {
     /// use file_seq::FileSeq;
     /// use std::path::Path;
     ///
-    /// let dir = Path::new("./store_dir");
+    /// let dir = Path::new("/tmp/example_get_and_increment");
     /// let initial_value = 1;
     ///
     /// let seq = FileSeq::new(&dir, initial_value).unwrap();
@@ -122,7 +122,7 @@ impl FileSeq {
     /// use file_seq::FileSeq;
     /// use std::path::Path;
     ///
-    /// let dir = Path::new("./store_dir");
+    /// let dir = Path::new("/tmp/example_increment_and_get");
     /// let initial_value = 1;
     ///
     /// let seq = FileSeq::new(&dir, initial_value).unwrap();
@@ -144,7 +144,7 @@ impl FileSeq {
     /// use file_seq::FileSeq;
     /// use std::path::Path;
     ///
-    /// let dir = Path::new("./store_dir");
+    /// let dir = Path::new("/tmp/example_value");
     /// let initial_value = 1;
     ///
     /// let seq = FileSeq::new(&dir, initial_value).unwrap();
