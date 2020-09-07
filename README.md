@@ -18,3 +18,8 @@ seq.increment_and_get(1).unwrap();
 // Get, then increment by 1
 seq.get_and_increment(1).unwrap();
 ```
+
+## Changelog
+
+### 0.2.0 (2020-09-07)
+- Ignore errors on `FileSeq::delete` function (https://github.com/jonhkr/rust-file-seq/pull/1)

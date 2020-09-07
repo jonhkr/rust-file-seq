@@ -1,3 +1,32 @@
+//! Fail-safe file sequence
+//!
+//! Works by versioning values of sequences and throwing away all versions,
+//! but the current and the previous one.
+//!
+//! Inspired by [this Java implementation](https://commons.apache.org/proper/commons-transaction/apidocs/org/apache/commons/transaction/file/FileSequence.html)
+//!
+//! # Usage
+//!
+//! ```
+//! use file_seq::FileSeq;
+//! use std::path::Path;
+//!
+//! let dir = Path::new("/tmp/example");
+//! let initial_value = 1;
+//!
+//! let seq = FileSeq::new(&dir, initial_value).unwrap();
+//!
+//! // Get current value
+//! assert_eq!(initial_value, seq.value().unwrap());
+//!
+//! // Increment and get
+//! assert_eq!(initial_value + 1, seq.increment_and_get(1).unwrap());
+//!
+//! // Get and then increment
+//! assert_eq!(initial_value + 1, seq.get_and_increment(1).unwrap());
+//! assert_eq!(initial_value + 2, seq.value().unwrap());
+//! ```
+
 use std::fs;
 use std::io::{Error, ErrorKind, Read};
 use std::path::{Path, PathBuf};
@@ -19,10 +48,7 @@ impl FileSeq {
         let path_1 = store_path_buf.join("_1.seq");
         let path_2 = store_path_buf.join("_2.seq");
 
-        let seq = Self {
-            path_1,
-            path_2,
-        };
+        let seq = Self { path_1, path_2 };
 
         seq.initialize_if_necessary(initial_value)?;
 
@@ -37,22 +63,96 @@ impl FileSeq {
         }
     }
 
-    pub fn delete(&self) -> std::io::Result<()> {
-        fs::remove_file(&self.path_1)?;
-        fs::remove_file(&self.path_2)
+    /// Deletes this sequence
+    ///
+    /// Once deleted, the sequence must be recreated
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("/tmp/example_delete");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// // Get current value
+    /// assert_eq!(initial_value, seq.value().unwrap());
+    ///
+    /// seq.delete();
+    ///
+    /// // Attempts to read the sequence after it's deleted returns an error
+    /// assert_eq!(seq.value().is_err(), true)
+    /// ```
+    pub fn delete(&self) -> () {
+        // The files might not exist already
+        let _ = fs::remove_file(&self.path_1);
+        let _ = fs::remove_file(&self.path_2);
     }
 
+    /// Returns the current value of the sequence and then increments it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("/tmp/example_get_and_increment");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value, seq.get_and_increment(1).unwrap());
+    /// assert_eq!(initial_value + 1, seq.value().unwrap());
+    ///
+    /// ```
     pub fn get_and_increment(&self, increment: u64) -> std::io::Result<u64> {
         let value = self.read()?;
         self.write(value + increment)?;
         Ok(value)
     }
 
+    /// Increments the sequence and return the value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("/tmp/example_increment_and_get");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value + 1, seq.increment_and_get(1).unwrap());
+    /// assert_eq!(initial_value + 1, seq.value().unwrap());
+    ///
+    /// ```
     pub fn increment_and_get(&self, increment: u64) -> std::io::Result<u64> {
         let value = self.get_and_increment(increment)?;
         Ok(value + increment)
     }
 
+    /// Returns the current value of the sequence.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("/tmp/example_value");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value, seq.value().unwrap());
+    ///
+    /// ```
     pub fn value(&self) -> std::io::Result<u64> {
         self.read()
     }
@@ -70,34 +170,27 @@ impl FileSeq {
         }
 
         match value2 {
-            Some(v2) => {
-                match value1 {
-                    Some(v1) => {
-                        if v2 > v1 {
-                            Ok(v2)
-                        } else {
-                            warn!("Latest sequence value is smaller than backup, using backup.");
-                            fs::remove_file(&self.path_2).ok();
-                            Ok(v1)
-                        }
-                    }
-                    None => {
+            Some(v2) => match value1 {
+                Some(v1) => {
+                    if v2 > v1 {
                         Ok(v2)
+                    } else {
+                        warn!("Latest sequence value is smaller than backup, using backup.");
+                        fs::remove_file(&self.path_2).ok();
+                        Ok(v1)
                     }
                 }
-            }
+                None => Ok(v2),
+            },
             None => {
                 fs::remove_file(&self.path_2).ok();
 
                 match value1 {
-                    Some(v1) => {
-                        Ok(v1)
-                    }
-                    None => {
-                        Err(Error::new(
-                            ErrorKind::InvalidData,
-                            "Looks like both backup and latest sequence files are corrupted."))
-                    }
+                    Some(v1) => Ok(v1),
+                    None => Err(Error::new(
+                        ErrorKind::InvalidData,
+                        "Looks like both backup and latest sequence files are corrupted.",
+                    )),
                 }
             }
         }
@@ -127,7 +220,7 @@ impl FileSeq {
 mod tests {
     use std::env;
     use std::fs;
-    use std::path::{PathBuf};
+    use std::path::PathBuf;
 
     use rand::RngCore;
 
@@ -168,7 +261,7 @@ mod tests {
         assert!(std::fs::metadata(dir).is_ok());
         assert!(std::fs::metadata(&seq.path_2).is_ok());
         seq.increment_and_get(1).unwrap();
-        seq.delete().unwrap();
+        seq.delete();
         assert!(!std::fs::metadata(&seq.path_1).is_ok());
         assert!(!std::fs::metadata(&seq.path_2).is_ok());
     }
