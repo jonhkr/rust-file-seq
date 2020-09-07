@@ -19,10 +19,7 @@ impl FileSeq {
         let path_1 = store_path_buf.join("_1.seq");
         let path_2 = store_path_buf.join("_2.seq");
 
-        let seq = Self {
-            path_1,
-            path_2,
-        };
+        let seq = Self { path_1, path_2 };
 
         seq.initialize_if_necessary(initial_value)?;
 
@@ -70,34 +67,27 @@ impl FileSeq {
         }
 
         match value2 {
-            Some(v2) => {
-                match value1 {
-                    Some(v1) => {
-                        if v2 > v1 {
-                            Ok(v2)
-                        } else {
-                            warn!("Latest sequence value is smaller than backup, using backup.");
-                            fs::remove_file(&self.path_2).ok();
-                            Ok(v1)
-                        }
-                    }
-                    None => {
+            Some(v2) => match value1 {
+                Some(v1) => {
+                    if v2 > v1 {
                         Ok(v2)
+                    } else {
+                        warn!("Latest sequence value is smaller than backup, using backup.");
+                        fs::remove_file(&self.path_2).ok();
+                        Ok(v1)
                     }
                 }
-            }
+                None => Ok(v2),
+            },
             None => {
                 fs::remove_file(&self.path_2).ok();
 
                 match value1 {
-                    Some(v1) => {
-                        Ok(v1)
-                    }
-                    None => {
-                        Err(Error::new(
-                            ErrorKind::InvalidData,
-                            "Looks like both backup and latest sequence files are corrupted."))
-                    }
+                    Some(v1) => Ok(v1),
+                    None => Err(Error::new(
+                        ErrorKind::InvalidData,
+                        "Looks like both backup and latest sequence files are corrupted.",
+                    )),
                 }
             }
         }
@@ -127,7 +117,7 @@ impl FileSeq {
 mod tests {
     use std::env;
     use std::fs;
-    use std::path::{PathBuf};
+    use std::path::PathBuf;
 
     use rand::RngCore;
 
