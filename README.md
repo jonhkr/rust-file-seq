@@ -3,7 +3,8 @@
 Implemented in Rust.
 Inspired by this [Java implementation](https://commons.apache.org/proper/commons-transaction/apidocs/org/apache/commons/transaction/file/FileSequence.html)
 
-![Crates.io](https://img.shields.io/crates/v/file-seq) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jonhkr/rust-file-seq/Rust)
+[![Crates.io](https://img.shields.io/crates/v/file-seq)](https://crates.io/crates/file-seq)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jonhkr/rust-file-seq/Rust)](https://github.com/jonhkr/rust-file-seq/actions)
 ## Usage
 
 ```rust
