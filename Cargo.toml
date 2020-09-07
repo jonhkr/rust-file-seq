@@ -9,10 +9,7 @@ categories = ["filesystem"]
 repository = "https://github.com/jonhkr/rust-file-seq"
 description = "Fail-safe file sequence that uses the file system as store"
 readme = "README.md"
-exclude = [
-  "file-seq.iml",
-  ".github"
-]
+include = ["src/", "README.md"]
 
 [dependencies]
 log = "0.4.11"
