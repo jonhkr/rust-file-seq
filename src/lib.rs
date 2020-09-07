@@ -1,3 +1,32 @@
+//! Fail-safe file sequence
+//!
+//! Works by versioning values of sequences and throwing away all versions,
+//! but the current and the previous one.
+//!
+//! Inspired by [this Java implementation](https://commons.apache.org/proper/commons-transaction/apidocs/org/apache/commons/transaction/file/FileSequence.html)
+//!
+//! # Usage
+//!
+//! ```
+//! use file_seq::FileSeq;
+//! use std::path::Path;
+//!
+//! let dir = Path::new("./store_dir");
+//! let initial_value = 1;
+//!
+//! let seq = FileSeq::new(&dir, initial_value).unwrap();
+//!
+//! // Get current value
+//! assert_eq!(initial_value, seq.value().unwrap());
+//!
+//! // Increment and get
+//! assert_eq!(initial_value + 1, seq.increment_and_get(1).unwrap());
+//!
+//! // Get and then increment
+//! assert_eq!(initial_value + 1, seq.get_and_increment(1).unwrap());
+//! assert_eq!(initial_value + 2, seq.value().unwrap());
+//! ```
+
 use std::fs;
 use std::io::{Error, ErrorKind, Read};
 use std::path::{Path, PathBuf};
@@ -34,22 +63,95 @@ impl FileSeq {
         }
     }
 
+    /// Deletes this sequence
+    ///
+    /// Once deleted, the sequence must be recreated
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("./store_dir");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// // Get current value
+    /// assert_eq!(initial_value, seq.value().unwrap());
+    ///
+    /// seq.delete().unwrap();
+    ///
+    /// // Attempts to read the sequence after it's deleted returns an error
+    /// assert_eq!(seq.value().is_err(), true)
+    /// ```
     pub fn delete(&self) -> std::io::Result<()> {
         fs::remove_file(&self.path_1)?;
         fs::remove_file(&self.path_2)
     }
 
+    /// Returns the current value of the sequence and then increments it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("./store_dir");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value, seq.get_and_increment(1).unwrap());
+    /// assert_eq!(initial_value + 1, seq.value().unwrap());
+    ///
+    /// ```
     pub fn get_and_increment(&self, increment: u64) -> std::io::Result<u64> {
         let value = self.read()?;
         self.write(value + increment)?;
         Ok(value)
     }
 
+    /// Increments the sequence and return the value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("./store_dir");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value + 1, seq.increment_and_get(1).unwrap());
+    /// assert_eq!(initial_value + 1, seq.value().unwrap());
+    ///
+    /// ```
     pub fn increment_and_get(&self, increment: u64) -> std::io::Result<u64> {
         let value = self.get_and_increment(increment)?;
         Ok(value + increment)
     }
 
+    /// Returns the current value of the sequence.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use file_seq::FileSeq;
+    /// use std::path::Path;
+    ///
+    /// let dir = Path::new("./store_dir");
+    /// let initial_value = 1;
+    ///
+    /// let seq = FileSeq::new(&dir, initial_value).unwrap();
+    ///
+    /// assert_eq!(initial_value, seq.value().unwrap());
+    ///
+    /// ```
     pub fn value(&self) -> std::io::Result<u64> {
         self.read()
     }
