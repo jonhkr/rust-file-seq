@@ -81,14 +81,15 @@ impl FileSeq {
     /// // Get current value
     /// assert_eq!(initial_value, seq.value().unwrap());
     ///
-    /// seq.delete().unwrap();
+    /// seq.delete();
     ///
     /// // Attempts to read the sequence after it's deleted returns an error
     /// assert_eq!(seq.value().is_err(), true)
     /// ```
-    pub fn delete(&self) -> std::io::Result<()> {
-        fs::remove_file(&self.path_1)?;
-        fs::remove_file(&self.path_2)
+    pub fn delete(&self) -> () {
+        // The files might not exist already
+        let _ = fs::remove_file(&self.path_1);
+        let _ = fs::remove_file(&self.path_2);
     }
 
     /// Returns the current value of the sequence and then increments it.
@@ -260,7 +261,7 @@ mod tests {
         assert!(std::fs::metadata(dir).is_ok());
         assert!(std::fs::metadata(&seq.path_2).is_ok());
         seq.increment_and_get(1).unwrap();
-        seq.delete().unwrap();
+        seq.delete();
         assert!(!std::fs::metadata(&seq.path_1).is_ok());
         assert!(!std::fs::metadata(&seq.path_2).is_ok());
     }
