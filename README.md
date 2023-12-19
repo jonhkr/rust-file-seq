@@ -4,7 +4,8 @@ Implemented in Rust.
 Inspired by this [Java implementation](https://commons.apache.org/proper/commons-transaction/apidocs/org/apache/commons/transaction/file/FileSequence.html)
 
 [![Crates.io](https://img.shields.io/crates/v/file-seq)](https://crates.io/crates/file-seq)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jonhkr/rust-file-seq/rust.yml?branch=main)](https://github.com/jonhkr/rust-file-seq/actions)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/jonhkr/rust-file-seq/rust.yml)](https://github.com/jonhkr/rust-file-seq/actions)
+
 ## Usage
 
 ```rust
